@@ -1,0 +1,18 @@
+# Allow tracking .txt files with "note" in their name
+!*/note*.txt
+!note*.txt
+
+# Allow directories to be traversed (necessary for nested files)
+!*/
+
+# Ignore these folders
+buffers/
+node source code/
+testing/
+dynamic-render-trial/
+assembly/
+learn/
+test/
+
+*.json
+
