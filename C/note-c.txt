@@ -5,7 +5,7 @@ If any number is floatintg point number (float & double), the output will be flo
 
 - Each memory location stores one byte.
 
-Address of an element in memory RAM:
+>Address of an element in memory RAM:
     &variableName;
     &arr[index]; // address of array elements
 
@@ -19,30 +19,30 @@ Address of an element in memory RAM:
                 printf("value of p: %p\n", p);
 
 
-Size of Element in memory:
-    the sizef returns the size of an element in memory
-    sizeof(variableName);
+>Size of Element in memory:
+        the sizef returns the size of an element in memory
+        sizeof(variableName);
 
-    ** caveat when size of is applied to an pointer, like in case of dynamic arrays
-        - int size = 4;
-        - int *arr = (int *)(malloc(size * sizeof(int)));
-        - sizeof(arr); 8 bytes in a 64 bit pointer and not 16 bytes.  
+        ** caveat when size of is applied to an pointer, like in case of dynamic arrays
+            - int size = 4;
+            - int *arr = (int *)(malloc(size * sizeof(int)));
+            - sizeof(arr); 8 bytes in a 64 bit pointer and not 16 bytes.  
 
-scope:
-    In c variables have block scope.
-    {
-        int x; x will be visible only inside this block
-    }
-
-    Also inner block variables will shadow outer variables
-    {
-        int x;
+>scope:
+        In c variables have block scope.
         {
-            int x; // inner x variable will shadow outer x variable
+            int x; x will be visible only inside this block
         }
-    }
 
-bool: 
+        Also inner block variables will shadow outer variables
+        {
+            int x;
+            {
+                int x; // inner x variable will shadow outer x variable
+            }
+        }
+
+>bool: 
     true is 1 
     false is 0
 
@@ -51,7 +51,7 @@ bool:
     1 (or any other number that is not 0) represents true
 
 
-Strings:
+>Strings:
     Are string mutalbe: 
             char str[] = "Helo";
             - str is a constant pointer that points to the  memory location of the first string element of str in memory
@@ -71,7 +71,7 @@ Strings:
         scanf stops when a white space or \n is encountered   
         fgets stops when a \n is encountered the \n is also added to the string if space is there
         fgets always adds the \0 to the end, 
-        scnaf will overflow the location if space is not there to add \0, the null terminator will be added to memory outside the bounds of the array causing buffer overflow 
+        scnaf will overflow the location if space is not there to add \0, the null terminator will be added to memory outside the bounds of the array causing buffer overflow, but within the programs memory space 
         scanf leaves any leftover characters(that exceed the limit) (e.g., spaces, newlines) in the input buffer, which can interfere with subsequent input operations. 
 
         char name[5]
@@ -79,39 +79,39 @@ Strings:
 
         
 
-1. How a C Program is Built
+>How a C Program is Built
     The process of building a C program involves multiple stages:
 
-a. Compilation
-    The compiler takes your C source code (.c file) and translates it into object code (machine code, but not yet executable).
-    During this stage, the compiler checks for syntax errors, type mismatches, and other issues in your code.
-    If there are no errors, the compiler produces an object file (e.g., program.o).
+    a. Compilation
+        The compiler takes your C source code (.c file) and translates it into object code (machine code, but not yet executable).
+        During this stage, the compiler checks for syntax errors, type mismatches, and other issues in your code.
+        If there are no errors, the compiler produces an object file (e.g., program.o).
 
-    gcc -c program.c
+        gcc -c program.c
 
-b. Linking
-    The linker combines the object files produced by the compiler with any required libraries (e.g., the C standard library) to create a single executable file .
-    The linker also resolves references to functions and symbols, including the main function.
-    If the linker cannot find the main function, it throws an error because main is the entry point required to create a valid executable.
+    b. Linking
+        The linker combines the object files produced by the compiler with any required libraries (e.g., the C standard library) to create a single executable file .
+        The linker also resolves references to functions and symbols, including the main function.
+        If the linker cannot find the main function, it throws an error because main is the entry point required to create a valid executable.
 
-    gcc program.o -o program
+        gcc program.o -o program
 
-c. Execution (not taking about the CPU executing the instruction)
-Once the executable is created, the operating system loads and runs the program.
+    c. Execution (not taking about the CPU executing the instruction)
+    Once the executable is created, the operating system loads and runs the program.
 
 
 
-Is main function required?
+>Is main function required?
     Yes. However in kernel programming and embedded sytems there are workarounds.
 
-Why return 0 from main?
+>Why return 0 from main?
     - The compiler maps the return 0 code in main() to a system call.
     - Return 0 is actually making system call to the OS
     - This switches execution from user mode to kernel mode, allowing the OS to take over.
     - The OS uses exit codes to clean up resources (memory, file handles) and log outcomes.
 
 
-Does iteration in for loop create a different execution context like in JS ?
+>Does iteration in for loop create a different execution context like in JS ?
 
     - No, no new execution context is created.
 
@@ -124,7 +124,7 @@ Does iteration in for loop create a different execution context like in JS ?
         }
 
 
-Arrays: Static
+>Arrays: Static
    
     myArr below is actually a pointer constant pointing to the memory location of first myArr elemenet
 
@@ -159,7 +159,7 @@ Arrays: Static
                         Critical memory: Overwrites data used by the OS or other processes (very dangerous).
 
 
-Pointers:
+>Pointers:
 
     Anytime we want to store memory address we need to use pointer
 
@@ -188,7 +188,7 @@ Pointers:
               = myNumbers + 4 bytes; 
 
 
-Returning arrays from function:
+>Returning arrays from function:
     In C directly returning arrays function is not possible.
 
     There are three useful approaches
@@ -197,11 +197,11 @@ Returning arrays from function:
         - Approach 3 (struct encapsulation) if you need to return both the array and its size.
 
 
-Pending: Returning arrays from function.
+>Pending: Returning arrays from function.
 
 
 
-Arrays Dynamic:
+>Arrays Dynamic:
 
     > using malloc
 
@@ -230,7 +230,7 @@ Arrays Dynamic:
             return 1;
         }
 
-Memory leaks and free()
+>Memory leaks and free()
 
     - When you allocate memory using malloc/calloc, the memory is allocated on the heap , 
     - which has a lifetime that extends beyond the scope of the function in which it was allocated.
@@ -240,7 +240,7 @@ Memory leaks and free()
 
 
 
-Structures:
+>Structures:
 
     - Structures can be stored in heap, stack or or even in the data segment (for global/static variables). It depends on where the structure is declared.
 
@@ -298,7 +298,7 @@ Structures:
          
 
 
-Stack Vs Heap Vs Data Segment in memory of C program?
+>Stack Vs Heap Vs Data Segment in memory of C program?
 
     The text segment stores the program's machine code.
     The data segment stores global and static variables (initialized and uninitialized).
@@ -308,13 +308,13 @@ Stack Vs Heap Vs Data Segment in memory of C program?
 
 
 
-lvalues ?
+>lvalues ?
     In C, an lvalue is something that refers to a memory location and can appear on the left-hand side of an assignment (=).
     Examples of lvalues include variables like x, array elements, or dereferenced pointers (e.g., *ptr).
 
 
 
-Input Buffers:
+>Input Buffers:
     Our program doesn't directly receive the keystrokes. 
     Instead, it reads input from the buffer when you use functions like scanf, getchar, or fgets.   
 
@@ -324,7 +324,7 @@ Input Buffers:
 
 
 
-Comparisions of different types:
+>Comparisions of different types:
 
     - In C, comparisons (like ==, !=, <, >, etc.) require both operands to be numeric values or values that can be interpreted numerically.
     - This is because comparisons in C are fundamentally based on numeric equivalence or ordering.
@@ -346,3 +346,10 @@ Comparisions of different types:
     Boolean Comparisons :
         In C, true is 1 and false is 0. When comparing a boolean value with another type, the boolean is treated as an integer (0 or 1).
 
+
+
+> After the program ends, 
+
+        - the data in the portion of memory used by the application remains in the state it was last used , 
+        - but the memory is marked as free by the OS. 
+        - The OS does not reset the memory to an arbitrary value unless it is explicitly cleared or reused by another process.
