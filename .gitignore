@@ -1,6 +1,7 @@
 # Allow tracking .txt files with "note" in their name
 !*/note*.txt
 !note*.txt
+!*note.txt
 
 # Allow directories to be traversed (necessary for nested files)
 !*/
@@ -15,4 +16,6 @@ learn/
 test/
 
 *.json
-
+*.js
+*.c
+*.cc

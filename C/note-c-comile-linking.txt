@@ -1,0 +1,125 @@
+
+Preprocessing (resolve headers) -> Compilation(create .o) ->
+
+-> Linking (link header implementation/libraries, create the executable) -> Execution
+
+example: 
+
+    shapes.h                                                    
+
+        #ifndef SHAPES_H
+                #define SHAPES_H
+
+                // Macro for a constant
+                #define PI 3.14159
+
+                // Type definition for a struct
+                typedef struct {
+                    double radius;
+                } Circle;
+
+                // Function declaration
+                double calculate_area(Circle c);
+
+        #endif
+
+
+    shapes.c
+
+        #include "shapes.h"
+
+        double calculate_area(Circle c) {
+            return 3.14159 * c.radius * c.radius;
+        }
+
+
+    main.c 
+
+        #include <stdio.h>
+        #include <shapes.h>
+
+         int main(){
+            Circle myCircle = {5.0};
+            double area = calculate_area(myCircle);
+            printf("Area: %.2f\n", area);
+            return 0;
+         }
+
+
+1. The Role of #include "shapes.h"
+
+    - When you write #include "shapes.h" in main.c, the preprocessor replaces this directive with the contents of the shapes.h file. 
+    - This gives the compiler access to:
+        Declarations (e.g., double calculate_area(Circle c);),
+        Macros (e.g., #define PI 3.14159),
+        Type definitions (e.g., typedef struct { double radius; } Circle;).
+        
+    - However, the header file (shapes.h) only contains declarations and not the actual definitions (implementations) of functions like calculate_area.
+    - The implementation is provided in shapes.c.
+
+
+2. How Does shapes.c Get Utilized?
+    The connection between main.c, shapes.h, and shapes.c happens during the compilation and linking process. 
+    
+    Here's how it works:
+
+    > Step 1: Compilation
+    
+    - Each .c file (source file) is compiled separately into an object file (.o or .obj depending on the platform).
+    - The compiler processes the code in each file independently.
+
+        Compiling main.c:
+
+        - The compiler reads main.c and includes the contents of shapes.h.
+        - It sees the declaration of calculate_area and knows that a function with this signature exists,
+        - but it doesn’t know where the implementation is yet.
+        - The compiler generates an object file for main.c (e.g., main.o).
+      
+      
+        Compiling shapes.c:
+        - The compiler reads shapes.c and includes the contents of shapes.h.
+        - It finds the definition (implementation) of calculate_area and compiles it into machine code.
+        - The compiler generates an object file for shapes.c (e.g., shapes.o).
+        - At this stage, both main.o and shapes.o are compiled independently, but they are not yet linked together.
+
+    > Step 2: Linking
+
+        - After compilation, the linker combines all object files (main.o and shapes.o) into a single executable program.
+        - During this process:
+
+            - The linker resolves references to functions and variables.
+            - When main.o calls calculate_area, the linker finds the implementation of calculate_area in shapes.o and connects them.
+        
+        This ensures that the final executable contains all the necessary code to run the program.
+
+
+    ** The key point is that shapes.c is utilized during the linking phase , 
+    where the linker combines the object files (main.o and shapes.o) to resolve references and create the final executable.
+
+    > Compiling and linking instruction:
+
+        gcc -c shapes.c -o shapes.o  # Compile shapes.c into shapes.o
+        gcc -c main.c -o main.o     # Compile main.c into main.o
+        gcc main.o shapes.o -o program  # Link main.o and shapes.o into an executable named "program"
+
+
+
+Q) How is the standard library like stdio.h is liked to our program?
+
+    When you include a header like stdio.h you're only importing the declarations of the function.
+    The actual implementation of these functions is in the precompiled standard library.
+
+    Step 1: Preprocessing
+        - The preprocessor replaces #include <stdio.h> with the contents of the stdio.h file.
+        - The stdio.h file contains declarations for standard I/O functions like printf, scanf, etc., but not their implementations.
+
+
+    Step 2: Compilation
+        -The compiler compiles your source code (main.c) into an object file (main.o).
+
+    Step 3: Linking
+        - During linking, the linker connects your program with the standard library (.g., as .a or .so files on Linux, or .lib/.dll files on Windows).
+        - The linker finds the implementation of printf in the standard library and resolves the reference.   
+    
+
+    This process is automatic because the standard library is linked by default when you compile a C program.
