@@ -1,2 +1,1 @@
-some random code.
-Hello world
+update foo.md ## the next line

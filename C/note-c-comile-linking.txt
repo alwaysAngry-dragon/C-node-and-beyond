@@ -102,7 +102,8 @@ example:
         gcc -c main.c -o main.o     # Compile main.c into main.o
         gcc main.o shapes.o -o program  # Link main.o and shapes.o into an executable named "program"
 
-
+        IN Windows
+        gcc shapes.c main.c -o prog.exe
 
 Q) How is the standard library like stdio.h is liked to our program?
 

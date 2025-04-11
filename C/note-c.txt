@@ -68,15 +68,21 @@ If any number is floatintg point number (float & double), the output will be flo
     reading string:
         both - scanf and fgets appends \0 null terminator to the end of the string
 
-        scanf stops when a white space or \n is encountered   
         fgets stops when a \n is encountered the \n is also added to the string if space is there
-        fgets always adds the \0 to the end, 
+        fgets always adds the \0 to the end,
+        if the input buffer has more characters than the array size then the extra characters will remain in the input buffer
+
+         str will contain: 'j', 'o', 'n', '\n', '\0'. strlen will give 4 (will include the \n)
+
+
+        scanf stops when a white space or \n is encountered, the remaining characters will remain in the input buffer 
         scnaf will overflow the location if space is not there to add \0, the null terminator will be added to memory outside the bounds of the array causing buffer overflow, but within the programs memory space 
         scanf leaves any leftover characters(that exceed the limit) (e.g., spaces, newlines) in the input buffer, which can interfere with subsequent input operations. 
 
         char name[5]
         scanf("%s", name);
 
+        fgets(name, sizeof(name), stdin)
         
 
 >How a C Program is Built
@@ -271,6 +277,11 @@ If any number is floatintg point number (float & double), the output will be flo
                 // Global structure, stored in the data segment, declared outside any functions.
                 struct MyStruct globalStruct = {10, 20.5};
 
+
+    > The stack variable is not an address to the stack in memory but the stack struct itself.
+
+         struct MyStruck str;
+         printf("%d",str); // error str is a structure, not a primitive type like an integer or pointer
 
     > Copying structures:
 
