@@ -359,8 +359,48 @@ If any number is floatintg point number (float & double), the output will be flo
 
 
 
-> After the program ends, 
+> After the program ends:
 
         - the data in the portion of memory used by the application remains in the state it was last used , 
         - but the memory is marked as free by the OS. 
         - The OS does not reset the memory to an arbitrary value unless it is explicitly cleared or reused by another process.
+
+
+
+
+> Returning adresses of local variable: - preventing dangling pointers
+
+        - when a function ends the memory allocated for that function is deallocated.
+        - so the local variable will also be deallocated, and their memory address becomes invalid.
+
+        - to fix this issue dynamically allocate those variables using malloc, calloc
+
+
+        Incorrect: 
+
+        int *takeInput()
+        {
+            int x;
+            printf("Enter element: ");
+            scanf("%d", &x);
+            clearInputBuffer();
+            return &x; // This is incorrect because it returns the address of a local variable 'x'
+        }
+
+
+        Correct:
+
+        int *takeInput()
+            {
+                int x;
+                printf("Enter element: ");
+                scanf("%d", &x);
+                clearInputBuffer();
+                int *tempMatrix = (int *)malloc(sizeof(int)); // Dynamically allocate memory for tempMatrix, tempMatrix has the address of the heap that will store value of type int
+                if (!tempMatrix) {
+                    fprintf(stderr, "Failed to allocate memory\n");
+                    exit(EXIT_FAILURE);
+                }
+                *tempMatrix = x; // Assign the value of x to tempMatrix, ie on the heap
+                return tempMatrix;
+            }
