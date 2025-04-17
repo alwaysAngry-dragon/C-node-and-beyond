@@ -203,7 +203,6 @@ If any number is floatintg point number (float & double), the output will be flo
         - Approach 3 (struct encapsulation) if you need to return both the array and its size.
 
 
->Pending: Returning arrays from function.
 
 
 
@@ -307,6 +306,9 @@ If any number is floatintg point number (float & double), the output will be flo
             p->y = 20.5; // Access `y` through the pointer
         }
          
+
+    > Can structure varaibles be returned from a function? How is that possible ?
+        Yes.
 
 
 >Stack Vs Heap Vs Data Segment in memory of C program?
