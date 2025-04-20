@@ -310,6 +310,11 @@ If any number is floatintg point number (float & double), the output will be flo
     > Can structure varaibles be returned from a function? How is that possible ?
         Yes.
 
+        In C, when you return a struct from a function:
+
+            - The entire structure is copied to the caller's scope.
+            - This copying happens because structures in C are value types , meaning they are passed and returned by value (not by reference).
+
 
 >Stack Vs Heap Vs Data Segment in memory of C program?
 
