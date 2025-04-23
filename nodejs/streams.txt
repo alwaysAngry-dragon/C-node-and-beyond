@@ -1,91 +1,172 @@
-1. Stream Creation (fileHandle.createWriteStream())
-When you call:
 
-const writeStream = fileHandle.createWriteStream();
+WRITABLE STREAM:-
 
-  Node.js:
 
-    Creates a WriteStream instance linked to the file descriptor.
-
-    Initializes an internal buffer (default size: 16KB, configurable via highWaterMark).
-
-    Sets up event listeners (drain, error, finish, etc.).
-
-    Does not write to disk yet - just prepares the stream structure.
-
-2. Writing Data (writeStream.write())
-When you call:
-
-writeStream.write(Buffer.from(` ${i} `, "utf-8"));
-
-    Node.js:
-
-      Copies your data into the stream's internal buffer (in memory).
-
-      Checks if buffer is full (exceeds highWaterMark):
-
-      If not full: Returns true (data is buffered, not yet on disk).
-
-      If full: Returns false (backpressure - you should pause writing).
-
-      Asynchronously schedules disk writes via libuv (Node's I/O layer).
-
-3. Behind-the-Scenes: How Data Reaches Disk
-
-    Libuv's event loop detects pending writes in the stream's buffer.
-
-    OS-level file writing begins (non-blocking, handled by the OS kernel).
-
-    Data is flushed in chunks (not necessarily one write() = one disk write).
-
-    Buffer empties as writes complete, emitting drain if previously full.
-
-4. Stream Closing (writeStream.end())
+  1. Stream Creation (fileHandle.createWriteStream())
   When you call:
 
-  await writeStream.end();
+  const writeStream = fileHandle.createWriteStream();
 
     Node.js:
 
-      Flushes remaining buffered data to disk.
+      Creates a WriteStream instance linked to the file descriptor.
 
-      Closes the file descriptor (unless autoClose: false).
+      Initializes an internal buffer (default size: 16KB, configurable via highWaterMark).
 
-      Emits finish event when all data is safely written.
+      Sets up event listeners (drain, error, finish, etc.).
+
+      Does not write to disk yet - just prepares the stream structure.
+
+  2. Writing Data (writeStream.write())
+  When you call:
+
+  writeStream.write(Buffer.from(` ${i} `, "utf-8"));
+
+      Node.js:
+
+        Copies your data into the stream's internal buffer (in memory).
+
+        Checks if buffer is full (exceeds highWaterMark):
+
+        If not full: Returns true (data is buffered, not yet on disk).
+
+        If full: Returns false (backpressure - you should pause writing).
+
+        Asynchronously schedules disk writes via libuv (Node's I/O layer).
+
+  3. Behind-the-Scenes: How Data Reaches Disk
+
+      Libuv's event loop detects pending writes in the stream's buffer.
+
+      OS-level file writing begins (non-blocking, handled by the OS kernel).
+
+      Data is flushed in chunks (not necessarily one write() = one disk write).
+
+      Buffer empties as writes complete, emitting drain if previously full.
+
+  4. Stream Closing (writeStream.end())
+    When you call:
+
+    await writeStream.end();
+
+      Node.js:
+
+        Flushes remaining buffered data to disk.
+
+        Closes the file descriptor (unless autoClose: false).
+
+        Emits finish event when all data is safely written.
 
 
 
-Data Flow in fs.createWriteStream()
+  Data Flow in fs.createWriteStream()
 
-    writeStream.write(data) is called
+      writeStream.write(data) is called
 
-    1. Data is copied into Node.js's internal buffer (in RAM).
+      1. Data is copied into Node.js's internal buffer (in RAM).
 
-    2. Default buffer size (highWaterMark) = 16KB (can be configured).
+      2. Default buffer size (highWaterMark) = 16KB (can be configured).
 
-    3. Buffer fills up quickly (faster than disk I/O)
+      3. Buffer fills up quickly (faster than disk I/O)
 
-    4. Since JavaScript executes much faster than disk writes, the buffer fills up quickly.
+      4. Since JavaScript executes much faster than disk writes, the buffer fills up quickly.
 
-    5. Once the buffer reaches highWaterMark, write() returns false (backpressure signal).
+      5. Once the buffer reaches highWaterMark, write() returns false (backpressure signal).
 
-    6. LibUV schedules disk writes
+      6. LibUV schedules disk writes
 
-    7. Node.js (via libuv) asynchronously flushes the buffer to disk.
+      7. Node.js (via libuv) asynchronously flushes the buffer to disk.
 
-    8. The OS handles the actual file write (non-blocking).
+      8. The OS handles the actual file write (non-blocking).
 
-    9. Buffer drains, allowing more writes
+      9. Buffer drains, allowing more writes
 
-    10. When enough data is written to disk, the buffer empties.
+      10. When enough data is written to disk, the buffer empties.
 
-    11. Node.js emits a 'drain' event, signaling it’s safe to write more.
+      11. Node.js emits a 'drain' event, signaling it’s safe to write more.
 
 
-Time  | JavaScript (Fast)          | Disk I/O (Slow)            | Buffer State Max 16KB(default)
-------|----------------------------|----------------------------|---------------
-t=0ms | write("A") → buffer = [A]  |                            | [A]
-t=1ms | write("B") → buffer = [A,B]| OS starts writing "A"      | [B] (A in flight)
-t=2ms | write("C") → returns false | Still writing "A"          | [B,C] (backpressure)
-t=5ms | (paused)                   | "A" done → emits 'drain'   | [C] (B now in flight)
-t=6ms | write("D") → buffer = [C,D]|                            | [D] (C in flight)
+  Time  | JavaScript (Fast)          | Disk I/O (Slow)            | Buffer State Max 16KB(default)
+  ------|----------------------------|----------------------------|---------------
+  t=0ms | write("A") → buffer = [A]  |                            | [A]
+  t=1ms | write("B") → buffer = [A,B]| OS starts writing "A"      | [B] (A in flight)
+  t=2ms | write("C") → returns false | Still writing "A"          | [B,C] (backpressure)
+  t=5ms | (paused)                   | "A" done → emits 'drain'   | [C] (B now in flight)
+  t=6ms | write("D") → buffer = [C,D]|                            | [D] (C in flight)
+
+
+
+READABLE STREAM:
+
+  1. When Does the Data Start Populating into the Internal Buffer?
+      The data starts populating into the internal buffer as soon as the fs.createReadStream 
+      is initialized and begins reading from the file. Here's how it works:
+
+
+      Initialization :
+
+      - When you call fs.createReadStream('foo.txt'), Node.js opens the file (foo.txt) and sets up a readable stream.
+      - The stream uses an internal buffer to temporarily store chunks of data read from the file.
+      
+      Reading Starts Automatically :
+      
+        - By default, the stream operates in flowing mode unless explicitly paused.
+        
+        - In flowing mode, the stream automatically starts reading data from the file and 
+          populates the internal buffer with chunks of data as soon as the file descriptor is opened.
+      
+      Triggering Events :
+        
+        - When the internal buffer has data available, the 'readable' event is emitted (if you're listening for it).
+        
+        - You can then call rr.read() to retrieve data from the internal buffer.
+
+  
+  2. What Is the Size of Each Chunk That Is Read and Added to the Buffer?
+      
+      The size of each chunk depends on the highWaterMark option of the stream. 
+      
+      By default:
+
+        Default highWaterMark :
+        
+          For fs.createReadStream, the default highWaterMark is 64 KB (65536 bytes) .
+  
+          This means that each chunk read from the file 
+          and added to the internal buffer will be approximately 64 KB in size,
+          unless the end of the file is reached before filling the buffer.
+        
+        Customizing highWaterMark :
+            You can specify a custom highWaterMark when creating the stream.
+            For example: 
+                      const rr = fs.createReadStream('foo.txt', { highWaterMark: 4 }); // 4-byte chunks
+
+    > How the 'readable' Event Works
+      
+        - The 'readable' event is emitted when there is data available in the internal buffer to be read i.e upto to highwatermark.
+        
+        - When you call rr.read(), it retrieves data from the internal buffer. If the buffer is empty, rr.read() returns null.
+            
+            Key Points About rr.read():
+           
+            Chunk Size :            
+            - The size of the data returned by rr.read() depends on the highWaterMark and how much data is available in the buffer.
+            - If you pass a number to rr.read(size), it attempts to read exactly that many bytes (or fewer if less data is available).
+            
+            End of File :
+            - When the end of the file is reached, rr.read() will return any remaining data in the buffer, and subsequent calls will return null.
+
+    ** If you don’t call read(), the internal buffer will remain full (up to the highWaterMark),
+        and the stream will stop reading new data from the source.
+
+
+  3. What is flowing and non-flowing mode?
+     
+     - Readable stream operates in non-flowing mode by default.
+    
+     - In non-flowing mode, you must explicitly call read() to consume data from the internal buffer.
+    
+     - Attaching a 'data' event listener or calling resume() switches the stream to flowing mode ,
+     where data is pushed to the consumer automatically.
+          
+          In flowing mode , the stream automatically emits 'data' events as soon as data is available. 

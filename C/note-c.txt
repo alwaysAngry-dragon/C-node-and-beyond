@@ -411,3 +411,32 @@ If any number is floatintg point number (float & double), the output will be flo
                 *tempMatrix = x; // Assign the value of x to tempMatrix, ie on the heap
                 return tempMatrix;
             }
+
+
+> Stack & Stack Frame:
+
+        |-----------------------------|
+        |        funcB Stack Frame    | <- Includes local variable `b`
+        |-----------------------------|
+        |    Return Address (to funcA)|
+        |-----------------------------|
+        |        funcA Stack Frame    | <- Includes local variable `a`
+        |-----------------------------|
+        |    Return Address (to main) |
+        |-----------------------------|
+        |        main Stack Frame     | <- Includes local variable `x`
+        |-----------------------------|
+
+ - The stack is the overall memory region used for function calls, 
+    while a stack frame is a specific block of memory within the stack that corresponds to a single function call. 
+
+
+ - The stack is a contiguous region of memory used for managing function calls and their associated data. 
+    - It operates as a last-in, first-out (LIFO) structure, meaning the most recently added data (e.g., a stack frame) is the first to be removed.
+
+    Key Points About the Stack:
+        The stack is a single, unified memory region .
+        It contains multiple stack frames , each corresponding to an active function call.
+        The stack does not explicitly store addresses of stack frames —instead, it directly holds the stack frames themselves in sequence.
+
+        The stack is essentially a growing/shrinking block of memory and stack frames are contiguous regions within this block .
