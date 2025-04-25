@@ -6,6 +6,7 @@ If any number is floatintg point number (float & double), the output will be flo
 - Each memory location stores one byte.
 
 >Address of an element in memory RAM:
+
     &variableName;
     &arr[index]; // address of array elements
 
@@ -20,7 +21,7 @@ If any number is floatintg point number (float & double), the output will be flo
 
 
 >Size of Element in memory:
-        the sizef returns the size of an element in memory
+        the sizeof returns the size of an element in memory
         sizeof(variableName);
 
         ** caveat when size of is applied to an pointer, like in case of dynamic arrays
@@ -66,10 +67,11 @@ If any number is floatintg point number (float & double), the output will be flo
 
 
     reading string:
-        both - scanf and fgets appends \0 null terminator to the end of the string
+        both - scanf and fgets appends \0 null terminator to the end of the string - always
 
         fgets stops when a \n is encountered the \n is also added to the string if space is there
         fgets always adds the \0 to the end,
+
         if the input buffer has more characters than the array size then the extra characters will remain in the input buffer
 
          str will contain: 'j', 'o', 'n', '\n', '\0'. strlen will give 4 (will include the \n)
@@ -88,6 +90,10 @@ If any number is floatintg point number (float & double), the output will be flo
 >How a C Program is Built
     The process of building a C program involves multiple stages:
 
+    First - Preprocessing: the preprocessor replaces the directives with the contents of the header file.
+
+    Next - 
+
     a. Compilation
         The compiler takes your C source code (.c file) and translates it into object code (machine code, but not yet executable).
         During this stage, the compiler checks for syntax errors, type mismatches, and other issues in your code.
@@ -102,8 +108,8 @@ If any number is floatintg point number (float & double), the output will be flo
 
         gcc program.o -o program
 
-    c. Execution (not taking about the CPU executing the instruction)
-    Once the executable is created, the operating system loads and runs the program.
+    c. Execution (not talking about the CPU executing the instruction)
+        Once the executable is created, the operating system loads and runs the program.
 
 
 
@@ -351,7 +357,7 @@ If any number is floatintg point number (float & double), the output will be flo
       the C compiler attempts to convert one or both operands into compatible numeric forms so that the comparison can proceed. This process is governed by type conversion rules in C.
 
     Integer Promotions :
-        Smaller integer types (e.g., char, short) are promoted to int or unsigned int before the compariso
+        Smaller integer types (e.g., char, short) are promoted to int or unsigned int before the comparison
 
 
     Pointer Comparisons :

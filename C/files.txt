@@ -1,0 +1,249 @@
+> Reading a file:-
+    FILE, the FILE structure, file descriptors, syscalls, buffers, FILE structure members
+    reading, initial reading, subsequent syscalls, how the buffer is used in reading
+
+
+    fopen() → OS open() → FILE struct created → ptr assigned  
+
+
+
+
+1. OS File Table
+        
+        Q What is the OS File Table?
+        
+         - The OS maintains a global file table (kernel data structure) to track all open files across all processes.
+
+         - Each entry in the file table contains:
+
+                > File offset: Current read/write position.
+
+                > Access mode: Read/write/append.
+
+                > Reference count: How many processes have the file open.
+
+                > Inode pointer: Links to the file’s metadata (permissions, size, disk location).
+
+
+2. The FILE type in C: -
+
+    - The FILE type is an structure defined in the C standard library (typically in <stdio.h>).
+    - the FILE *ptr = fopen(...); // ptr holds the adderss of the FILE strucutre in memory
+    
+    - It encapsulates all the necessary information for managing file I/O operations.
+       While the exact implementation of FILE is platform-dependent,
+       it typically includes the following components:
+
+        a. File Descriptor
+                - A reference to the file descriptor assigned by the operating system.
+
+        b. Stream Buffer
+                - A buffer used to temporarily store data being read from or written to the file.
+                - This improves performance by reducing the number of direct I/O operations with the disk.
+                - Default size of the buffer is system specific. (8192 bytes (8 KB) on modern systems (Linux/Windows/macOS).)
+
+        c. Position Indicator        
+                - Tracks the current position in the file (e.g., where the next read or write operation will occur).
+    
+        d. Error and End-of-File Flags
+                - Flags indicating whether an error occurred or if the end of the file has been reached.
+    
+        e. Other Metadata
+                - Additional information such as the file mode (e.g., "r", "w"), buffering mode, and other internal state variables.
+
+
+
+3. File Descriptor
+    - When a process opens a file via fopen(), the OS:
+
+    - Creates an entry in its file table.
+
+    - Returns a file descriptor (integer like 3) to the process.
+
+    - The file descriptor is an index into the process-specific file descriptor table, which points to the OS’s global file table.
+
+    - The fd is used to map the process to the actual file via the OS file table.
+
+
+
+
+> How fopen() works:
+
+        fopen() is not a syscall itself but a C library function that internally invokes the open() syscall.
+
+        -- fopen() calls open("file.txt", O_RDONLY), which is a syscall.
+
+        -- The OS updates its file table and returns a file descriptor (e.g., 3).
+
+        -- The C library wraps 3 into a FILE struct (with buffers and metadata).
+
+
+
+        The FILE struct (simplified) looks like:
+
+
+                    struct FILE {
+                            int fd;                // File descriptor (e.g., 3)
+                            char *buffer;          // Pointer to the I/O buffer
+                            size_t buf_size;       // Buffer size (e.g., 4096)
+                            size_t buf_pos;        // Current position in the buffer
+                            size_t buf_len;        // Number of bytes in the buffer
+                            int flags;             // Flags (read/write mode, error, EOF)
+                            // ... Other fields (OS-specific)
+                    };
+
+
+
+> Reading a file with buffering:
+
+    1) First fread() call:
+
+        - If the buffer is empty, the C library invokes read(fd, buffer, 4096) (syscall).
+
+        - Data is copied from the OS’s buffer (kernel) to the FILE buffer (user space).
+
+        Initally the buf_pos will be 0
+                     buf_len will be 4096
+
+
+                After the first fread() -> read() syscall
+
+                FILE Struct:
+                +---------------------+
+                | fd       = 3        |
+                | buffer   = [0x...]  | → [byte0, byte1, ..., byte4095] (4096 bytes)
+                | buf_size = 4096     |
+                | buf_pos  = 0        | ← Next read starts here
+                | buf_len  = 4096     |
+                +---------------------+
+
+    2) Subsequent fread() calls:
+
+        - Serve data directly from the user-space buffer until it’s exhausted.
+
+        - Another read() syscall is triggered to refill the buffer.
+
+            char data[100];
+            fread(data, 1, 100, ptr); // Read 100 bytes from the FILE buffer
+
+                -- Copies 100 bytes from buffer[buf_pos] to data.
+
+                -- Increments buf_pos by 100.
+
+                -- No syscall occurs (data is served from the buffer).
+
+
+
+        fread() -> syscall read -> OS  to FILE buffer -> fread() -> data from FILE buffer untill extausted -> repeat
+
+
+    Q) How does the program know when the buffer is exhausted:
+
+         when buf_pos == buf_len, another read() refills the buffer.
+
+    Q) How does the FILE structure know the EOF, because it is the OS that keeps track of the file:
+
+         - If the buffer is empty, fread() invokes the read() syscall to refill the buffer.
+         - If the read() syscall reaches EOF, it reads fewer bytes than requested.
+         - The FILE object sets the EOF flag and updates the buffer size.
+
+
+        // Check if EOF was reached
+        if (feof(fptr)) {
+            printf("End of file reached.\n");
+            break;
+        }
+
+        // Check for errors
+        if (ferror(fptr)) {
+            perror("Error reading file");
+            break;
+        }
+
+
+
+> Read/Write Position
+
+    - Current Position
+         
+         -- The file offset (byte position) where the next read/write occurs.
+
+            Stored in two places:
+
+                    - OS File Table: The "true" offset managed by the kernel.
+
+                    - FILE Struct: A cached offset in user space (may differ due to buffering).
+
+    
+    - Example: Reading a File
+
+        -- FILE buffer holds bytes 0–4095 (from disk).
+
+            - After reading 100 bytes:
+
+            - FILE’s buf_pos becomes 100.
+
+            - OS’s file offset remains 0 (no syscall needed yet).
+
+        -- When the buffer is exhausted:
+
+            - The C library updates the OS’s file offset to 4096 via lseek(fd, 4096, SEEK_SET) (syscall).
+
+                    fseek(ptr, offset, SEEK_SET): Adjusts the FILE’s cached offset and flushes the buffer.
+
+                    lseek(fd, offset, SEEK_SET): Directly updates the OS’s file offset (syscall)
+
+
+> Writing a to a file:
+
+    fwrite -> writes to FILE buffer -> when FILE buffer is full -> write syscall writes (flush) to acutal File --> repeat
+
+
+    Return type: fwrite returns the number of items written (not total bytes) to FILE buffer,
+                 To find total bytes written  = number of items * size of each item 
+
+
+    FILE struct’s _offset: Tracks the logical position (where the next byte will be written).
+    FILE struct's also track  the points to the next buffer position
+
+
+    
+        Q) Does the fwrite track if all the data is written into the file?
+
+            The FILE struct does not track total bytes written. That has to be done manually.
+
+           - The fwrite does not track that. It simply puts into data into the FILE buffer.
+
+           - The OS maintains a file offset for each open file descriptor, to keep track of the write position.
+
+    
+        Q) Here what does fclose(fptr) do:
+
+            - If the data is the FILE buffer is less than the FILE buffer size then
+                        - the data is will not be written to disk. Eg fwrite(data,1,2,fptr); // assume FILE buffer is 8KB
+
+                        - now if we call fclose(fptr), the data in the FILE buffer will be flused into the acutal disk
+
+
+        Q) What are the cases when the data in the FILE buffer will be automatically be flused?
+
+                 - Buffer is full.
+
+                 - Explicit call to fflush(fptr).
+
+                 - File is closed with fclose(fptr).
+
+                 - Program terminates (all open files are closed automatically).
+
+
+        Example of FILE buffer increments: file size is 16KB, FILE buffer size is 8KB, each write is 4KB
+
+                Buffer fills in increments:
+
+                        First write 4 KB → buffer at 4/8 KB.
+
+                        Second write 4 KB → buffer full (8/8 KB), triggers flush.
+
+                        Third write 4 KB → buffer at 4/8 KB.
+
+                        Fourth write 4 KB → buffer full again (8/8 KB), triggers flush.
