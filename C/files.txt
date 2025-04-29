@@ -114,7 +114,7 @@ A file opend in 'w' cannot be read and vice versa.
         - Data is copied from the OS’s buffer (kernel) to the FILE buffer (user space).
 
         Initally the buf_pos will be 0
-                     buf_len will be 4096
+                     buf_len will be 4096 (because the buffer now has 4096 bytes of data)
 
 
                 After the first fread() -> read() syscall
@@ -139,7 +139,7 @@ A file opend in 'w' cannot be read and vice versa.
 
                 -- Copies 100 bytes from buffer[buf_pos] to data.
 
-                -- Increments buf_pos by 100.
+                -- Increments buf_pos by 100. (i.e the next read will start from here)
 
                 -- No syscall occurs (data is served from the buffer).
 
@@ -148,14 +148,22 @@ A file opend in 'w' cannot be read and vice versa.
         fread() -> syscall read -> OS  to FILE buffer -> fread() -> data from FILE buffer untill extausted -> repeat
 
 
+    Q) How does the FILE sturcture keep track of the number of bytes currently in the buffer:
+
+        buf_len keeps track of the number of bytes currently in the buffer.
+
+
     Q) How does the program know when the buffer is exhausted:
 
-         when buf_pos == buf_len, another read() refills the buffer.
+         Once buf_pos >= buf_len, another read(fd, buffer, 4096) is needed to refill the buffer.
+
+         This reads the next 4096 bytes (from offset 4096 in the file)
 
     Q) How does the FILE structure know the EOF, because it is the OS that keeps track of the file:
 
          - If the buffer is empty, fread() invokes the read() syscall to refill the buffer.
          - If the read() syscall reaches EOF, it reads fewer bytes than requested.
+                   say 4096 is requested but only 100 is returned. This signals EOF
          - The FILE object sets the EOF flag and updates the buffer size.
 
 
@@ -172,6 +180,13 @@ A file opend in 'w' cannot be read and vice versa.
         }
 
 
+    Q) In what chunk sizes if the data fetched from the actual file by the OS into the FILE buffer
+        the size is dependent on the system, usually its 4KB default FILE buffer.
+        so each chunk is 4KB or less if the data in the acutal file is less.
+
+
+    Q) Does fread(...) return anything ?
+        Yes, fread returns the number of bytes read from the FILE buffer.
 
 > Read/Write Position
 
@@ -188,15 +203,17 @@ A file opend in 'w' cannot be read and vice versa.
     
     - Example: Reading a File
 
-        -- FILE buffer holds bytes 0–4095 (from disk).
+        -- FILE buffer holds bytes 4KB i.e 4096 bytes from 0 - 4095
 
             - After reading 100 bytes:
 
-            - FILE’s buf_pos becomes 100.
+            - FILE’s buf_pos becomes 100 (i.e the next read position from the FILE buffer).
 
             - OS’s file offset remains 0 (no syscall needed yet).
 
-        -- When the buffer is exhausted:
+        -- When the buffer is exhausted (buf_pos == buf_len):
+
+            When buf_pos == 4096 (4KB), the buffer is exhausted
 
             - The C library updates the OS’s file offset to 4096 via lseek(fd, 4096, SEEK_SET) (syscall).
 
@@ -217,6 +234,20 @@ A file opend in 'w' cannot be read and vice versa.
     FILE struct’s _offset: Tracks the logical position (where the next byte will be written).
     FILE struct's also track  the points to the next buffer position
 
+
+        Q) How is it tracked if the FILE buffer is full:
+            buf_size: size of buffer
+            buf_pos: Current position where the next byte will be written
+            buf_len: Number of valid bytes currently in the buffer (for output buffers, this is usually equal to
+                        buf_pos  or unused)
+
+
+            When buf_pos == buf_size, buffer is full → flush it
+
+
+        Q) Does fwrite() Pause or Wait During a Flush?
+            fwrite() does not pause unless a flush is triggered.
+            After flush syscall buf_pos = 0; so the buffer now is empty.
 
     
         Q) Does the fwrite track if all the data is written into the file?
@@ -261,8 +292,25 @@ A file opend in 'w' cannot be read and vice versa.
 
 
 
+             User Code
+                ↓
+            fwrite(data, 1, 1, fptr)
+                ↓
+            Check: Can we fit more in buffer?
+                ↓ YES
+            Add to buffer[buf_pos], increment buf_pos by 1
+                ↓
+            Check: Can we fit more in buffer?                
+                ↓ NO if buf_pos == buf_size
+            Flush buffer: write(fd, buffer, buf_pos)
+                ↓
+            Reset buf_pos = 0
+                Add new data
+                ↓
+                Continue..
 
-Q) Does reading read the '\n' in the end.
+
+Q) Does writing to a file read the '\n' in the end.
 A) Yes, while writing to the output file, it will be copied in exact.
 Example file content: test.txt 
                     Hello

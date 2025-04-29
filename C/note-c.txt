@@ -462,3 +462,16 @@ If any number is floatintg point number (float & double), the output will be flo
             - If it can’t resize the current block (e.g., no space after it), it allocates a new block , 
               copies data over, and returns the new address. The returned pointer may be different from the original.
 
+
+
+> size_t:
+     size_t is unsigned integer used to store size
+
+     what is sizeof size_t:
+        32 bit system its 4 bytes
+        64 bit system its 8 bytes
+    
+     - Never use signed types (like int) for sizes — can cause overflow or comparison bugs.
+     - size_t is guaranteed to be large enough to hold the result of sizeof() on any object.
+
+     printf("Size: %zu\n", some_size_t_value);
