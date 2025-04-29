@@ -1,3 +1,6 @@
+A file opend in 'w' cannot be read and vice versa.
+
+
 > Reading a file:-
     FILE, the FILE structure, file descriptors, syscalls, buffers, FILE structure members
     reading, initial reading, subsequent syscalls, how the buffer is used in reading
@@ -5,6 +8,14 @@
 
     fopen() → OS open() → FILE struct created → ptr assigned  
 
+
+
+> A note of printf
+
+    When you print data using printf("The data is:\n %s", data);
+    the %s format specifier expects a null-terminated string.
+    If data is not null-terminated,
+    this results in undefined behavior because printf will continue reading memory beyond the bounds of the array.
 
 
 
@@ -247,3 +258,28 @@
                         Third write 4 KB → buffer at 4/8 KB.
 
                         Fourth write 4 KB → buffer full again (8/8 KB), triggers flush.
+
+
+
+
+Q) Does reading read the '\n' in the end.
+A) Yes, while writing to the output file, it will be copied in exact.
+Example file content: test.txt 
+                    Hello
+                    World
+
+
+                    while ((ch = fgetc(sourceFile)) != EOF)
+                        {
+                            fputc(ch, destFile);
+                            if (ch == '\n')
+                            {
+                                lines++;
+                            }
+                            i++;
+                        }
+
+                    Here the total lines read will be 2
+                    Total bytes 'i' read will be 12
+                    The program sees the content as H e l l o \n W o r l d \n
+                    

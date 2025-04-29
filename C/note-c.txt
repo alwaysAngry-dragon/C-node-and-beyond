@@ -446,3 +446,19 @@ If any number is floatintg point number (float & double), the output will be flo
         The stack does not explicitly store addresses of stack frames —instead, it directly holds the stack frames themselves in sequence.
 
         The stack is essentially a growing/shrinking block of memory and stack frames are contiguous regions within this block .
+
+
+
+
+> realloc()
+
+
+    Q) Does realloc always shrink or expand the same memory block?
+
+    A) realloc() can either:
+
+            - Expand or shrink the memory block pointed to by the given pointer.
+            
+            - If it can’t resize the current block (e.g., no space after it), it allocates a new block , 
+              copies data over, and returns the new address. The returned pointer may be different from the original.
+

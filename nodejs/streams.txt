@@ -28,9 +28,9 @@ WRITABLE STREAM:-
 
         Checks if buffer is full (exceeds highWaterMark):
 
-        If not full: Returns true (data is buffered, not yet on disk).
+            If not full: Returns true (data is buffered, not yet on disk).
 
-        If full: Returns false (backpressure - you should pause writing).
+            If full: Returns false (backpressure - you should pause writing, note - the data will be written to the internal buffer, but the return will be false).
 
         Asynchronously schedules disk writes via libuv (Node's I/O layer).
 
