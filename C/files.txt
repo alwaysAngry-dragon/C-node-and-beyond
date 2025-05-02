@@ -310,13 +310,19 @@ A file opend in 'w' cannot be read and vice versa.
                 Continue..
 
 
+Q) What happends if FILE buffer is 4KB and fwrite(data, sizeof(char), 8192, fptr);  // 8KB total
+A) The data will be written in 4KB chunks and not 8KB.
+
+
 Q) Does writing to a file read the '\n' in the end.
 A) Yes, while writing to the output file, it will be copied in exact.
 Example file content: test.txt 
                     Hello
                     World
 
+                    // fgetc returns int i.e ascii representation of the character
 
+                    int ch;
                     while ((ch = fgetc(sourceFile)) != EOF)
                         {
                             fputc(ch, destFile);
@@ -331,3 +337,34 @@ Example file content: test.txt
                     Total bytes 'i' read will be 12
                     The program sees the content as H e l l o \n W o r l d \n
                     
+
+> fscanf:
+
+    Does it add '\0' at the end:
+        - Yes, fscanf(fptr, "%s", first) will automatically add the null terminator ('\0') to the end of the string stored in the first array
+        - The C standard guarantees that %s will always append a null terminator ('\0') after the last character read, provided the buffer is large enough.
+
+    Skip Leading Whitespace :
+            %s skips any leading whitespace (spaces, tabs, or newlines) before reading characters.
+                
+                Read Characters :
+                It reads characters one by one until it encounters a whitespace character (space, tab, newline, etc.) or reaches the end of the file.
+
+    Buffer Overflow Protection :
+            If the input string is longer than the size of the destination array, fscanf will cause a buffer overflow , which can lead to undefined behavior.
+
+                fscanf(file, "%99s", first); // Reads at most 99 characters, leaving space for '\0'
+
+    EOF:
+        fscanf returns EOF when it reaches the end of the file (EOF) and cannot read any more data.
+
+
+## MODES:
+
+    "r": Open for reading (file must exist else returns NULL).
+    "w": Open for writing (creates a new file or truncates an existing one).
+    "a": Open for appending (writing at the end of the file).
+    "r+": Open for reading and writing (file must exist).
+    "w+": Open for reading and writing (creates a new file or truncates an existing one).
+    "a+": Open for reading and appending (writing at the end of the file).
+
