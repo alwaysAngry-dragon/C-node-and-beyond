@@ -338,26 +338,69 @@ Example file content: test.txt
                     The program sees the content as H e l l o \n W o r l d \n
                     
 
+> fprintf:
+
+        its working is same to fwirte, 
+        - buf_pos and buf_len are used to keep track of internal FILE Buffer.
+
+        return type:
+            - returns number of character written to the file
+            int count = fprintf(file, "Hello, World!\n"); // count = 14
+
+            - If an error occurs during the write operation (e.g., disk full, file closed), fprintf will return a negative value .
+              This indicates that the write operation failed.
+
+
 > fscanf:
+
+    return type:      
+            returns the number of successfully matched and assigned input items.
+            Returns EOF if the end of the file is reached before reading any data.
+
 
     Does it add '\0' at the end:
         - Yes, fscanf(fptr, "%s", first) will automatically add the null terminator ('\0') to the end of the string stored in the first array
         - The C standard guarantees that %s will always append a null terminator ('\0') after the last character read, provided the buffer is large enough.
 
     Skip Leading Whitespace :
-            %s skips any leading whitespace (spaces, tabs, or newlines) before reading characters.
+            skips any leading whitespace (spaces, tabs, or newlines) before reading characters.
                 
                 Read Characters :
                 It reads characters one by one until it encounters a whitespace character (space, tab, newline, etc.) or reaches the end of the file.
 
     Buffer Overflow Protection :
+            
+            If the input is longer than the size of the destination array then
+                    - fscanf will write beyond the bounds of the destination array
+                    - the '\0' is also added to beyound the bounds
+                    - this causes data curruption.
+                    - so it works similar to scanf(%s)
+
             If the input string is longer than the size of the destination array, fscanf will cause a buffer overflow , which can lead to undefined behavior.
 
-                fscanf(file, "%99s", first); // Reads at most 99 characters, leaving space for '\0'
+            Fix to prevent buffer overflow:
+            fscanf(file, "%99s", first); // Reads at most 99 characters, leaving space for '\0'
 
     EOF:
         fscanf returns EOF when it reaches the end of the file (EOF) and cannot read any more data.
 
+
+
+> fgets:
+
+        - The fgets function in C is used to read a line (or a portion of a line) from a file or input stream.
+        - It reads characters until it encounters a newline (\n) or reaches the specified maximum number of characters, 
+          whichever comes first.
+        - It appends a null terminator ('\0') to the end of the string before returning.
+        - If a newline is encountered, it is included in the buffer and followed by a null terminator ('\0').
+
+        - If the input line is longer than destination, 
+                - the remaining characters stay in the input buffer (e.g., the FILE buffer or stdin buffer).
+       
+        return type -
+
+            char *fgets(char *str, int n, FILE *stream);
+            On failure or end-of-file (EOF): Returns NULL
 
 ## MODES:
 

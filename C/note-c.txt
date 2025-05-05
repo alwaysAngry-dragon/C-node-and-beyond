@@ -43,6 +43,11 @@ If any number is floatintg point number (float & double), the output will be flo
             }
         }
 
+        Memory management at end of each iteration:
+
+            In C, variables declared inside a block (e.g., inside the while loop, for or within a case block) 
+            have local scope and are destroyed when the block ends (or after each iteration).
+
 >bool: 
     true is 1 
     false is 0
@@ -73,18 +78,25 @@ If any number is floatintg point number (float & double), the output will be flo
         fgets always adds the \0 to the end,
 
         if the input buffer has more characters than the array size then the extra characters will remain in the input buffer
+        - If the input line is longer than destination, 
+                - the remaining characters stay in the input buffer (e.g., the FILE buffer or stdin buffer).
 
          str will contain: 'j', 'o', 'n', '\n', '\0'. strlen will give 4 (will include the \n)
 
 
-        scanf stops when a white space or \n is encountered, the remaining characters will remain in the input buffer 
-        scnaf will overflow the location if space is not there to add \0, the null terminator will be added to memory outside the bounds of the array causing buffer overflow, but within the programs memory space 
-        scanf leaves any leftover characters(that exceed the limit) (e.g., spaces, newlines) in the input buffer, which can interfere with subsequent input operations. 
+        scanf stops when a white space or \n is encountered, 
+            - the remaining characters after the space or \n will remain in the input buffer 
+            - which can interfere with subsequent input operations.
+            
+        if the input is larger that the destination then
+            - the remaining input will overflow the destination
+            - scnaf will overflow the location if space is not there to add \0, 
+            - the null terminator will be added to memory outside the bounds of the array causing buffer overflow, but within the programs memory space 
 
         char name[5]
         scanf("%s", name);
 
-        fgets(name, sizeof(name), stdin)
+        fgets(name, sizeof(name), stdin);  fgets size - 1, because '\0' is added to the end
         
 
 >How a C Program is Built
