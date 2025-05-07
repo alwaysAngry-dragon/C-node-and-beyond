@@ -1,4 +1,5 @@
-%d/i, %c, %s, %f, %lf, %lu, %p(used for printing memory address)
+%d/i, %c, %s, %f, %lf, %lu, %p(used for printing memory address), %zu (for size)
+%02X (hex representation with 2 padding)
 
 In C, when you divide two integers (e.g., 5 / 2), the result is an integer division.
 If any number is floatintg point number (float & double), the output will be floating point number.

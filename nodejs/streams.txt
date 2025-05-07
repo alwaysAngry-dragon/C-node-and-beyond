@@ -170,3 +170,39 @@ READABLE STREAM:
      where data is pushed to the consumer automatically.
           
           In flowing mode , the stream automatically emits 'data' events as soon as data is available. 
+
+
+
+> PIPES:
+
+    we can use pipe in the stream to handle backpressure, draning etc instead of us doing it
+
+    readableStream.pipe(writableStream);
+
+    - cons: not good for production, as it lacks proper erro handling
+
+
+> Reading FILE the traditional way:
+
+   
+    const destFile = await fs.open("text-copy.txt", "w");
+    const sourceFile = await fs.open("bigFile.txt", "r");
+
+    let bytesRead = -1;
+
+    while (bytesRead !== 0) {
+      
+      // the internal buffer size if 16KB by default, even if the data in the file is less,
+      // the read will reaturn a buffer of 16KB, the bytes read will keep track of the actual amount of bytes read
+
+      const readData = await sourceFile.read();
+      bytesRead = readData.bytesRead;
+
+      if (bytesRead === 0) {
+        break;
+      }
+      const buffer = readData.buffer.subarray(0, bytesRead);
+      await destFile.write(buffer);
+
+      // console.log(readData);
+    }

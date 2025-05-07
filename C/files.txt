@@ -105,6 +105,13 @@ A file opend in 'w' cannot be read and vice versa.
 
 
 
+> Where is the FILE stucture in memory - stack frame or heap?
+    It is in heap.
+        ✔️ The FILE structure is typically allocated on the heap
+            - Internally, fopen() uses dynamic memory allocation (like malloc()) to create the FILE object and its associated buffers.
+            - This memory lives beyond the scope of any function — it’s dynamically allocated from the heap .
+
+
 > Reading a file with buffering:
 
     1) First fread() call:
@@ -186,7 +193,11 @@ A file opend in 'w' cannot be read and vice versa.
 
 
     Q) Does fread(...) return anything ?
-        Yes, fread returns the number of bytes read from the FILE buffer.
+
+        fread reads and returns raw binary data , regardless of whether the file was opened in text mode or binary mode.
+
+        Yes, the number of elements successfully read (not bytes).
+           int elementsRead = fread(destination, );
 
 > Read/Write Position
 
@@ -411,3 +422,29 @@ Example file content: test.txt
     "w+": Open for reading and writing (creates a new file or truncates an existing one).
     "a+": Open for reading and appending (writing at the end of the file).
 
+
+
+> ** \n can be 1 or 2bytes depending on the OS
+
+    lest's say the file contains content: Design smith 
+    characters are (12) + 1 or 2 (the new line at the end)
+
+
+> Printing the HEX value:
+    
+        if data[i] is = 15
+        printf("%02X ", data[i]);  // Output: 0F 
+
+        example:
+
+                int main() {
+                    unsigned char data[] = {0, 15, 10, 255, 240};
+                    int length = sizeof(data) / sizeof(data[0]);
+
+                    for (int i = 0; i < length; i++) {
+                        printf("%02X ", data[i]); // output: 00 0F 0A FF F0 
+                    }
+
+                    printf("\n");
+                    return 0;
+                }
