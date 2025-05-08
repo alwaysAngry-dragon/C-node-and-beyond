@@ -1,0 +1,71 @@
+> Working with binary read and writes:
+
+    **fread and fwrite always works with binary data does not matter whice mode 'r' or 'rb', 'w' or 'wb'
+
+
+    1. What Exactly Is Written to the File When You Append the Struct?
+        
+        - When you append a struct to the file using fwrite,
+           the entire binary representation (including padding) of the struct is written to the file. Here's what that means:
+
+        a. Binary Representation
+        The fwrite function writes the raw bytes of the struct directly to the file.
+        For your MyStruct:
+                        typedef struct
+                        {
+                            int id;
+                            char name[20];
+                        } MyStruct;
+
+             - The id (an int) is stored as its binary representation,
+                which typically occupies 4 bytes (on most systems).
+            
+            - The name (a char array of size 20) is stored as its raw bytes, 
+              including any unused space if the string is shorter than 20 characters.
+              
+              For example:
+              If name = "John", the first 4 bytes will store 'J', 'o', 'h', 'n', followed by a null terminator ('\0'), 
+              and the remaining 15 bytes will be unused (or filled with garbage values unless explicitly initialized).
+
+            > Suppose you create a MyStruct instance like this:
+
+                MyStruct myStruct = {123, "Alice"};
+
+                The binary representation written to the file will look something like this in memory:
+
+                id (123): Stored as 0x7B 0x00 0x00 0x00 (little-endian format on most systems).
+                name ("Alice"): Stored as 'A', 'l', 'i', 'c', 'e', '\0', followed by 14 unused bytes.
+                So, the file will contain exactly 24 bytes for this struct (4 bytes for id + 20 bytes for name).
+
+
+
+
+    size_t fwrite(const void *ptr, size_t size, size_t count, FILE *stream);
+
+        ptr: A pointer to the data you want to write.
+        size: The size (in bytes) of each element to write.
+        count: The number of elements to write.
+        stream: The file pointer.
+
+
+    2. Writing the struct to the file:
+        fwrite(&myStruct, sizeof(MyStruct), 1, file);
+
+        &myStruct: A pointer to the myStruct variable.
+        sizeof(MyStruct): The size of the struct in bytes (24 bytes in this case).
+        1: The number of struct instances to write.
+
+        *If you omit the &, the compiler will throw an error because fwrite expects a pointer, not the actual value.
+
+
+> What happend during fread:
+
+        size_t result = fread(myStruct, sizeof(MyStruct), 1, file);
+
+        - The fread function reads raw binary data from the file and 
+           stores it directly into the memory location pointed to by myStruct.
+
+        - The size of each "element" being read is sizeof(MyStruct) (24 bytes in this case: 4 bytes for id + 20 bytes for name).
+        - The number of elements to read is 1, meaning fread attempts to read one complete MyStruct instance from the file.
+
+        - so after read the struct location in the memory will have the binary info
