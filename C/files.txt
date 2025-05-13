@@ -420,7 +420,13 @@ Example file content: test.txt
     "a": Open for appending (writing at the end of the file).
     "r+": Open for reading and writing (file must exist).
     "w+": Open for reading and writing (creates a new file or truncates an existing one).
-    "a+": Open for reading and appending (writing at the end of the file).
+    "a+": Open for reading and appending (writing at the end of the file, always).
+    "r+b" if you want to read and write without truncating the file.
+
+
+    >Index: 
+    - The data stored in a file starts at index(offset) 0 when viewed as a sequence of bytes. 
+      This is true for both text and binary files.
 
 
 

@@ -222,7 +222,19 @@ If any number is floatintg point number (float & double), the output will be flo
         - Approach 3 (struct encapsulation) if you need to return both the array and its size.
 
 
+> Pointer size (depends on platform):
 
+    char *line;
+    line = "Hello";
+    printf("The value of line %p\n", (void *)line);
+    printf("The size of pointer is %zu bytes\n", sizeof(line));
+
+    // The size if 8 bytes or 64 bits
+    // output: The value of line 00007ff601a2b06b 
+
+char *line[100]; Array of 100 pointers to char
+char (*line)[100]; Pointer to an array of 100 chars
+char line[100]; Array of 100 chars (a single string buffer)
 
 
 >Arrays Dynamic:
