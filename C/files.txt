@@ -413,6 +413,23 @@ Example file content: test.txt
             char *fgets(char *str, int n, FILE *stream);
             On failure or end-of-file (EOF): Returns NULL
 
+
+> feof(FILE *file)
+
+    - feof() checks an internal flag in the FILE structure that gets set when,
+    an I/O function (like fgetc, fscanf, etc.) tries to read beyond the end of the file .
+
+
+> ferror()
+
+    - it checks an internal flag in the FILE structure that gets set when 
+      something goes wrong during a read or write operation.
+
+    -  This flag is set whenever an I/O operation (like fread, fgetc, fscanf, etc.) encounters
+
+> how to reset feof and ferror flags:
+    clearerr(fptr);
+
 ## MODES:
 
     "r": Open for reading (file must exist else returns NULL).
