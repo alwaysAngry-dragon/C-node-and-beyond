@@ -199,6 +199,14 @@ A file opend in 'w' cannot be read and vice versa.
         Yes, the number of elements successfully read (not bytes).
            int elementsRead = fread(destination, );
 
+    Q) Reading size larger than the file size?
+     
+       - let tried to read 100bytes, but the file just has 10bytes, 
+       so the internal buffer will be filled with just 10bytes.
+
+       ⚠️ Important: fread() does not pad or fill the rest of the buffer with anything — it just returns how much was actually read. 
+
+
 > Read/Write Position
 
     - Current Position
@@ -412,6 +420,11 @@ Example file content: test.txt
 
             char *fgets(char *str, int n, FILE *stream);
             On failure or end-of-file (EOF): Returns NULL
+
+
+        Q) Where will the offset be at the after the fgets() call
+        A  After the first call to fgets() , the file offset will be positioned right after the newline character \n ,
+           which is at the start of the next line 
 
 
 > feof(FILE *file)

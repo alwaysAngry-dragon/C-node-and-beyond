@@ -1,0 +1,112 @@
+>In C, stdin is a predefined FILE * pointer that refers to the standard input stream .
+
+        It's one of three standard streams automatically opened by the C runtime before your program starts:
+
+        stdin – for reading input
+        stdout – for writing output
+        stderr – for writing error messages
+
+
+    >These are defined in <stdio.h> as global variables of type FILE*.
+
+
+            extern FILE *stdin;
+            extern FILE *stdout;
+            extern FILE *stderr;
+
+            Under the hood, these streams correspond to file descriptors :
+
+            0   Standard input
+            1   Standard output
+            2   Standard error
+
+
+>Example of using files as stdin, stdout and stderr
+
+    ../myprogram < input.txt [ can redirect stdin from a file instead of typing manually]
+
+    ./myprogram > output.txt [Here, the stdout goes to the file]
+
+    ./myprogram > output.txt 2> error.log  [Here, stdout goes to output.txt, and stderr goes to error.log]
+
+    ./myprogram 2> error.log [stderr goes to error.log file]
+
+
+
+
+> stdin:
+
+    By default, when connected to a terminal, stdin is line-buffered.
+            That means:
+                Your program doesn’t get any input until you press Enter (\n).
+                All the characters typed so far are sent to your program at once through the FILE buffer.
+
+
+    it can work with:
+
+         - fgetc
+            int c;
+            while ((c = fgetc(stdin)) != EOF) {
+                putchar(c);
+            }
+
+            You type H e l l o, then press Enter
+            The input is stored in the internal buffer of stdin
+            Each call to fgetc(stdin) returns one character from the buffer
+            Once all characters are consumed, the next call to fgetc(stdin) will block again
+    
+        - fgets
+            char line[100];
+            if (fgets(line, sizeof(line), stdin)) {
+                printf("You entered: %s", line);
+            }
+
+            Internals:
+                -Reads from the internal buffer
+
+                - Stops when:
+                    - A newline is found
+                    - Buffer fills up
+                    - End-of-file (EOF) is reached
+                    - Automatically adds null terminator \0
+                    - If the line is longer than the buffer, only part of it is read — the rest stays in the buffer for the next call.
+
+
+        - fread
+
+            char buffer[1024];
+            size_t bytes_read = fread(buffer, 1, sizeof(buffer), stdin);
+
+            - So even though you called fread(), it won’t return immediately — it waits for the whole line! (default line buffering).
+
+
+
+> stdout:
+
+    - When we use functions like fputc, fprintf, or fwrite with stdout, 
+    they all go through the internal buffer associated with the stdout stream,
+    just like when you write to a file.
+
+
+    example:
+            - fputc('A', stdout);
+            - fprintf(stdout, "Hello\n");
+            - fwrite(buffer, 1, size, stdout);
+
+
+    - The buffer is flushed (i.e., contents are sent to the actual output destination) under these conditions:
+       
+        Buffer full  -> Automatically flushed when no space remains
+        Newline (\n) in line-buffered mode   -> If connected to terminal, flushes on newline
+        Program ends normally -> exit() flushes all open streams
+        Manual flush -> You call fflush(stdout)
+        Redirected to file/device -> May switch to fully buffered mode
+
+
+    By default:
+
+        - stdout is line-buffered when connected to a terminal (e.g., printing to screen).
+        - stdout is fully buffered when redirected to a file or pipe.
+
+        ./myprogram         # Line-buffered (flushes on \n)
+        ./myprogram > file  # Fully buffered (may delay output until buffer fills or program ends)
