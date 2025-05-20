@@ -1,0 +1,169 @@
+-- Low level: sys calls
+
+> read, write, open, close 
+
+Q) Does fread, fwrite, fgets, fprintf etc use sys calls in the implementation:
+A) Yes.
+
+    - The C Standard I/O functions (fread, fwrite, fprintf, etc.) 
+      are higher-level abstractions built on top of low-level system calls 
+      like open, read, write, and close.
+
+    - It's important to clarify that the standard library adds a layer of buffering for efficiency, 
+      which is a key difference.
+
+    - when you use fopen(), it calls open() to get a file descriptor, 
+      then wraps it in a FILE structure that includes a buffer. 
+      Subsequent reads and writes using fread or fwrite operate on this buffer, 
+      reducing the number of actual system calls. 
+      The buffer is flushed to the OS when it's full or when explicitly requested, 
+      which then triggers the write system call.
+
+
+
+    > Example Workflow: fread
+        
+        - fopen calls open() to get a file descriptor.
+
+        - fread reads data from the buffer (not directly from the disk).
+
+        - If the buffer is empty, it triggers a read() system call to refill the buffer (e.g., 4096 bytes at once).
+
+        - Subsequent fread calls use the buffered data until it’s exhausted.
+
+        - fclose flushes any pending writes and calls close().
+
+
+
+
+> How Standard I/O Functions Use System Calls
+        Standard I/O Function       Underlying System Calls                 Purpose
+        fopen()	                       open()	                            Opens the file and initializes the FILE struct with a buffer.
+        fread()	                       read() (when buffer is empty)	    Reads data in large chunks into a buffer, then serves smaller requests.
+        fwrite()	                   write() (when buffer is full)	    Buffers data and writes it in bulk to reduce system calls.
+        fflush()	                   write()	                            Forces the buffer to be written to the file.
+        fclose()	                   close()	                            Closes the file descriptor and frees the buffer.
+
+
+> Key Differences
+        Aspect	            Standard I/O (fread, fwrite)	            Low-Level I/O (read, write)
+        Buffering	        Buffered (e.g., 4KB chunks)	                No buffering (direct disk access)
+        Performance	        Better for small, frequent I/O	            Better for large, raw data transfers
+        Ease of Use	        Higher-level (formatted I/O)	            Requires manual buffer management
+        System Calls	    Indirect (hidden behind buffers)	        Direct (explicit calls)
+
+
+
+>               Function	    Action	                            System Call Trigger
+                fopen	        Opens a file	                    open()
+                fclose	        Closes a file	                    close() + final write()/read()
+                fflush	        Forces buffer write	                write()
+                fprintf	        Writes formatted data to buffer	    write() on buffer full/flush
+                fscanf	        Reads formatted data from buffer	read() on buffer empty
+                fgetc	        Reads a character from buffer	    read() on buffer empty
+                fputc	W       rites a character to buffer	        write() on buffer full
+
+
+        > Example:
+            Example: fwrite vs. write
+                Using fwrite (buffered):
+
+                        FILE *file = fopen("data.txt", "w");
+                        fwrite(buffer, sizeof(char), 100, file); // Writes to a buffer
+                        // ... More fwrite calls ...
+                        fclose(file); // Buffer is flushed to disk via `write()`
+
+                        System Calls: Only 1 write() when the buffer is full or on fclose().
+
+
+
+                        int fd = open("data.txt", O_WRONLY);
+                        write(fd, buffer, 100); // Direct system call
+                        // ... More write calls ...
+                        close(fd);
+
+                        System Calls: Every write() triggers a system call.
+
+
+Q) Why buffering is important:
+
+            Buffered I/O handles partial writes/reads automatically (retries if needed).
+
+
+
+> Example of writing a large data:
+
+    Example: Buffered I/O Workflow
+            1) Suppose you use fprintf to write 10,000 bytes to a file:
+
+            2) fopen calls open() to get a file descriptor.
+
+            3) fprintf writes data to the buffer (e.g., 4096-byte buffer).
+
+            4) When the buffer is full, write() is called to write 4096 bytes.
+
+            5) Repeat until all data is written.
+
+            6) fclose calls close() and flushes any remaining data if buffer is partially filled in last fprintf.
+
+
+> Detailed Step-by-Step Breakdown of reading
+
+    1. fopen("data.txt", "r") is called
+
+        System Call: open() is invoked to get a file descriptor (e.g., fd = 3).
+
+        FILE Struct Setup:
+
+                A FILE object is created in memory.
+
+                Its internal buffer (e.g., 4096 bytes) is initially empty (no data read yet).
+
+                The file’s read position is set to 0 (start of file).
+
+
+    2. First fscanf(fp, "%d", &value) is called
+        
+        Check Buffer: fscanf sees the FILE buffer is empty (no data preloaded).
+
+        Trigger read():
+
+            The standard I/O library calls read(fd, buffer, buffer_size) to fill the buffer.
+
+            Since the file is only 2 bytes (23), read() returns 2 (bytes read).
+
+            The buffer now contains: ['2', '3', GARBAGE, GARBAGE, ...] (only first 2 bytes are valid).
+
+        Parse Data:
+
+            fscanf starts reading from the buffer’s valid portion (23).
+
+            It stops at the end of valid data (no more digits or EOF).
+
+            The FILE struct’s internal pointer advances to pos = 2 (buffer consumed).
+
+
+    3. What Triggers fscanf to Use the Buffer?
+
+        Immediate Trigger: The mere act of calling fscanf checks the buffer’s state.
+
+            If the buffer is empty, it calls read() to fill it.
+
+            If the buffer has data (even 2 bytes), fscanf uses that data without calling read() again.
+
+        No "Full Buffer" Requirement:
+
+            fscanf doesn’t wait for the buffer to be "full" — it uses whatever is available (even 1 byte).
+
+            In your case, the 2-byte 23 is sufficient to parse an integer, so no further read() occurs.
+
+
+    4. What Happens on Subsequent fscanf Calls?
+    
+        If you call fscanf again:
+
+            The buffer is now "logically empty" (pos = 2, no more valid data).
+
+            Another read() is triggered, but since the file is exhausted, read() returns 0 (EOF).
+
+            fscanf fails (returns EOF).

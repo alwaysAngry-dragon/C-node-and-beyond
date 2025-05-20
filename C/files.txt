@@ -353,9 +353,34 @@ Example file content: test.txt
                         }
 
                     Here the total lines read will be 2
-                    Total bytes 'i' read will be 12
-                    The program sees the content as H e l l o \n W o r l d \n
-                    
+                    Total bytes 'i' read will depend in the "mode" being read in:
+
+                        1) in binary mode "rb":                    
+                            it will be 14 ( each \n is two bytes \r\n on Windows, on other platforms will be 1byte)
+                            The program sees the content as H e l l o \r\n W o r l d \r\n
+
+                        2) in read mode "r":
+                            it will be 12  
+                            The program sees the content as H e l l o \n W o r l d \n
+
+
+                    ** in reality the file is actually 6 bytes in storage, but the way we read depends
+
+                ⚠️ This difference only applies to Windows , where files use \r\n for newlines. 
+                    On Unix-like systems (Linux, macOS), both modes behave like text mode (since line endings are just \n). 
+
+
+Q) How will the \n be interpretted while reading and writing in Windows and UNIX:
+
+        while writing:
+        \n will occupy 2 (two) bytes in the Windows (\r\n) 
+        \n will occupy 1 (one) byte in UNIX (\n)
+
+        note:
+            int count = fprintf(file, "Hello\n"); 
+            count will be 6, but Window  runtime will interpret it as \r\n so the actual file size will be 7 bytes 
+
+        while reading in window in depends in the mode - check above question.
 
 > fprintf:
 
@@ -460,11 +485,12 @@ Example file content: test.txt
 
 
 
-> ** \n can be 1 or 2bytes depending on the OS
+> ** \n can be 1 or 2bytes depending on the OS platform
 
     lest's say the file contains content: Design smith 
     characters are (12) + 1 or 2 (the new line at the end)
 
+    On Unix it is 1 on Windows it is two (\r\n)
 
 > Printing the HEX value:
     

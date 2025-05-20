@@ -1,0 +1,10 @@
+ -- IP MAC PORT
+
+Networking Layers (TCP IP Model / OSI Model the layer concept is similar):
+
+
+        - Application Layer (Data - Node js/Networkin applications: SSH, FTP, HTTP, SMTP )
+        - Transport Layer (Segments - Medium: End-to-End Connections - TCP/UDP)
+        - Network Layer (Packets/IP Addresses - Medium: Routers)
+        - Data Link Layer (Frames/MAC Addresses - Medium: Switches)
+        - Physical Layer (Bits/Binary Transmission -  Medium : Cables)
