@@ -1,6 +1,166 @@
--- Low level: sys calls
+-- Low level: sys calls POSIX & Win32
 
-> read, write, open, close 
+> read, write, open, close in POSIX:
+    
+    - For POSIX systems (like Linux or macOS), the functions open(), read(), write(), 
+     and close() are part of the C standard library (like glibc)
+
+
+> CreateFile, ReadFile, WriteFile in Windows:
+
+    - Functions like CreateFile, ReadFile, WriteFile are part of the Win32 API (in kernel32.dll).
+
+    - ** note: these are not part of the C standard library unlike read, open, close etc in POSIX
+
+        
+
+Q) Are read, write, open, close etc the actual sys calls ?
+A) NO, 
+
+    > POSIX:
+
+        these are wrappers available to the C library (POSIX).
+        
+        -The key point here is that when you call open() in your code, 
+        the C library handles some setup, then triggers the actual system call to the kernel. 
+        
+        - The same applies to read and write. The library might add some error handling or buffering, 
+        but ultimately they invoke the kernel's system calls.
+
+
+Q) Are  CreateFile, ReadFile, WriteFile in Windows actual syscalls ?
+A) NO,
+
+    > Windows:
+
+        - CreateFile, ReadFile, WriteFile are Win32 API wrappers for Native API syscalls like NtCreateFile.
+
+
+
+
+Q) Are CreateFile, ReadFile, WriteFile in Windows part of the C standard library?
+A) NO,
+    - No, CreateFile, ReadFile, and WriteFile are not part of the C standard library. 
+    They are specific to the Windows API (Win32) and are provided by the Windows operating system itself.
+
+
+
+    > How They Relate to Syscalls
+
+        C Standard Library(fread) → Win32 API(ReadFile) → Native API → Syscall
+        Example:
+        fopen → Calls CreateFile (Win32) → Calls NtCreateFile (Native API) → Triggers syscall instruction.
+
+        i.e   Win32 API (kernel32.dll) → Calls the Native API (ntdll.dll).
+
+              Native API (ntdll.dll) → Executes the actual syscall instruction.
+
+
+    >       C Standard Library vs. Windows API
+    
+            Feature	                C Standard Library	                            Windows API (Win32)
+            Purpose	                Portable C functions (e.g., fopen, fread)	    Windows-specific low-level I/O (e.g., CreateFile)
+            Header	                <stdio.h>	                                    <windows.h>
+            File I/O Functions	    fopen, fread, fwrite, fclose	                CreateFile, ReadFile, WriteFile, CloseHandle
+            Portability	            Works on all platforms (Linux, macOS, Windows)	Windows-only
+            Underlying Mechanism	May use OS-specific syscalls internally	        Directly wraps Windows Native API (e.g., NtCreateFile)
+
+
+
+    Q) How are the kernel32.dll dependencies get resolved in Windows systems:
+
+        1) Compile-Time:
+
+                - When you compile your C program, the compiler sees the declaration of CreateFileA in <windows.h> 
+                but doesn’t embed the actual function code.
+
+                - Instead, it marks the call as an external reference to kernel32.dll
+
+                If your compiler doesn’t auto-link kernel32.lib, you can explicitly link it:
+                        gcc your_program.c -o output -lkernel32
+
+        
+        2) Runtime (When the Program Runs):
+
+                - When your program starts, the Windows loader:
+
+                    - Loads kernel32.dll into memory (if not already loaded).
+
+                    - Resolves the address of CreateFileA inside kernel32.dll.
+
+                    - Patches your program’s call to CreateFileA with the correct memory address.
+
+        3) Execution:
+
+                - When your program calls CreateFileA, the CPU jumps to the actual function inside kernel32.dll.
+
+
+            Windows loader resolves these dependencies:
+
+                   - Your executable → Loads ucrtbase.dll (C runtime) → Loads kernel32.dll (Win32 API).
+
+                   - The addresses of CreateFile, ReadFile, etc., are resolved at runtime.
+
+               
+
+
+
+        Example: From fopen to NtCreateFile
+        
+                fopen("file.txt", "r") (in ucrtbase.dll)
+                → Calls CreateFile("file.txt", GENERIC_READ, ...) (in kernel32.dll)
+                → Calls NtCreateFile (in ntdll.dll)
+                → Executes syscall 0x55 (example)
+                → Kernel handles the request.
+
+                Later, fread calls ReadFile (in kernel32.dll)
+                → Calls NtReadFile (in ntdll.dll)
+                → Executes syscall 0x06 (example)
+                → Kernel reads the file.
+
+> POSIX Systems (Linux/macOS)
+
+
+    System Calls vs. Library Functions
+
+    > System Calls:
+
+            - These are direct requests to the kernel, 
+              executed via a software interrupt (e.g., syscall instruction on x86-64).
+
+            - Examples: sys_open, sys_read, sys_write, sys_close.
+
+            - These are kernel-level functions and are not directly called by user programs.
+
+            - Each system call has a unique identifier (e.g., __NR_open on Linux).
+
+    > Library Wrappers:
+
+            - Functions like open, read, write are provided by the C standard library (e.g., glibc on Linux, libSystem on macOS).
+
+            They:
+
+                   - Prepare arguments for the system call.
+
+                   - Invoke the system call using architecture-specific mechanisms (e.g., syscall instruction).
+
+                   - Handle errors and set errno.
+
+
+            Example:
+
+                    Example: open() in glibc:
+
+                        int open(const char *pathname, int flags, mode_t mode) {
+                                return syscall(__NR_open, pathname, flags, mode);
+                            }
+
+                        - syscall() is a glibc function that triggers the actual system call.
+
+                        - The kernel switches to kernel mode, executes sys_open, and returns the result.
+
+
+        
 
 Q) Does fread, fwrite, fgets, fprintf etc use sys calls in the implementation:
 A) Yes.
@@ -61,7 +221,7 @@ A) Yes.
                 fprintf	        Writes formatted data to buffer	    write() on buffer full/flush
                 fscanf	        Reads formatted data from buffer	read() on buffer empty
                 fgetc	        Reads a character from buffer	    read() on buffer empty
-                fputc	W       rites a character to buffer	        write() on buffer full
+                fputc	        Writes a character to buffer	        write() on buffer full
 
 
         > Example:
@@ -105,6 +265,52 @@ Q) Why buffering is important:
             5) Repeat until all data is written.
 
             6) fclose calls close() and flushes any remaining data if buffer is partially filled in last fprintf.
+
+
+
+
+
+> POSIX - syscall numbers:
+
+    > in modern POSIX architecture syscall numbers are used instead of software interrupts to trigger syscalls
+
+    ** Syscall numbers stay the same across kernel versions, while memory addresses change.
+
+
+    Q) How the read() triggers the syscall:
+    A) Via the syscall number:
+        
+            1) No Memory Address Needed:
+
+                - The read() wrapper doesn’t call a memory address directly.
+
+                - It uses a syscall number (__NR_read) and 
+                the syscall instruction to ask the kernel to perform the operation.
+
+            2) Syscall Table in the Kernel:
+
+                - The kernel has a hardcoded table mapping syscall numbers to functions (e.g., sys_read, sys_write).
+
+                - This table is initialized at boot time and never exposed to user space.
+
+            3) Registers Are the Bridge:
+
+                - Arguments are passed via CPU registers (rdi, rsi, rdx for fd, buf, count).
+
+                - The syscall number goes in rax.
+
+
+        Q) How Does libc Know the Syscall Number?
+                
+                The numbers are fixed for each architecture (e.g., __NR_read is 0 on x86_64 Linux, 3 on ARM).
+
+                - They’re defined in kernel headers and baked into libc at compile time.
+
+                - The syscall number acts as an indirect reference to the actual kernel function's memory address. 
+
+                ** The syscall number is like an index into the kernel’s syscall table, which is an array of function pointers.
+
+
 
 
 > Detailed Step-by-Step Breakdown of reading
@@ -167,3 +373,14 @@ Q) Why buffering is important:
             Another read() is triggered, but since the file is exhausted, read() returns 0 (EOF).
 
             fscanf fails (returns EOF).
+
+
+
+
+        Function	        Purpose	                    Equivalent to (POSIX)
+        CreateFileA/W	    Open/create a file	        open
+        ReadFile	        Read data from a file	    read
+        WriteFile	        Write data to a file	    write
+        CloseHandle	        Close a file handle	        close
+        SetFilePointer	    Move the file pointer	    lseek
+        GetFileSize	        Get the size of a file	    stat (partial)
