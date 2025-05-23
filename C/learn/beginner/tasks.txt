@@ -1,0 +1,58 @@
+Beginner stage 30 programs:
+Basics (Syntax, Variables, Data Types, Constants)
+1.	Hello World : Write a program to print "Hello, World!" on the screen.
+2.	Add Two Numbers : Write a program to add two integers and display the result.
+3.	Area of a Circle : Write a program to calculate the area of a circle given its radius (use #define PI 3.1415).
+4.	Swap Two Numbers : Write a program to swap the values of two variables without using a third variable.
+5.	Simple Interest Calculator : Write a program to calculate simple interest using the formula: SI = (P * R * T) / 100.
+6.	Temperature Conversion : Write a program to convert temperature from Celsius to Fahrenheit and vice versa.
+________________________________________
+
+I/O Functions (printf(), scanf(), getchar(), putchar())
+7.	User Input and Output : Write a program to take input for two integers and print their sum.
+8.	Character Input and Output : Write a program to read a character using getchar() and print it using putchar().
+9.	String Input and Output : Write a program to take a string as input and print it back.
+10.	Formatted Output : Write a program to format and print an integer, float, and character using printf().
+________________________________________
+
+Control Structures (if-else, switch, Loops)
+11.	Even or Odd : Write a program to check whether a number is even or odd.
+12.	Largest of Three Numbers : Write a program to find the largest of three numbers using if-else.
+13.	Grade Calculator : Write a program to assign grades (A, B, C, D, F) based on marks using if-else or switch.
+14.	Vowel or Consonant : Write a program to check if a character is a vowel or consonant using switch.
+15.	Multiplication Table : Write a program to print the multiplication table of a number using a for loop.
+16.	Factorial of a Number : Write a program to calculate the factorial of a number using a while loop.
+17.	Prime Number Check : Write a program to check if a number is prime using a for loop.
+18.	Fibonacci Series : Write a program to print the Fibonacci series up to n terms using a do-while loop.
+19.	Sum of Digits : Write a program to calculate the sum of digits of a number using a while loop.
+20.	Reverse a Number : Write a program to reverse a number using a while loop.
+________________________________________
+
+Functions
+21.	Function to Add Two Numbers : Write a function to add two numbers and return the result.
+22.	Recursive Factorial : Write a recursive function to calculate the factorial of a number.
+23.	Check Palindrome : Write a function to check if a number is a palindrome.
+24.	Greatest Common Divisor (GCD) : Write a function to calculate the GCD of two numbers using recursion.
+25.	Power Function : Write a function to calculate x^n (x raised to the power n).
+________________________________________
+
+Arrays (1D/2D Arrays, Strings)
+26.	Sum of Array Elements : Write a program to calculate the sum of elements in a 1D array.
+27.	Largest Element in Array : Write a program to find the largest element in a 1D array.
+28.	Matrix Addition : Write a program to add two 2D matrices.
+29.	String Length : Write a program to calculate the length of a string without using strlen().
+30.	String Reverse : Write a program to reverse a string using a character array.
+
+
+31. Stack implementation, push, pop, stack is full, empty number of items using arrays
+32. Queue implementation FIFO using arrays
+33. Circular Queue implmentation using arrays
+34. Prefix evaluation
+35. Post evaluation
+
+ollama run qwen2.5-coder:1.5b-base
+ollama run codellama
+
+
+
+

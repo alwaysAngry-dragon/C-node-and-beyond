@@ -7,17 +7,6 @@
 !*/
 
 # Ignore these folders
-buffers/
 node source code/
-node-boilerplate-basicErrorHandling-getSpatial/
-testing/
-dynamic-render-trial/
-assembly/
-learn/
-test/
 
-*.json
-*.js
-*.c
-*.cc
 *.md

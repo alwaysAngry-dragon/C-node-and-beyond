@@ -1,0 +1,65 @@
+# the assembly program also depends on the arch 32 or 64 bit, so write assembly as the per the architecture
+# Assemble with NASM
+nasm -f win64 test.asm -o test.obj
+
+# Link with GCC
+gcc test.obj -o test.exe -nostartfiles "-Wl,-eStart" -lkernel32
+
+
+
+Node js guide: https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop
+
+>v8 is the js engine, 
+    converts the js to machine code and executes the js code/script
+    provides the APIs/tools for JS ↔ C++ interaction (e.g., converting JS types to C++ types).
+    it does not implement the c++ modules (this is done by node js)
+    does not create bindings itself (Node.js uses V8’s APIs to create bindings). V8 provides tools, but Node.js creates bindings
+
+    ** note it is the V8 that executes the js code/script,
+        -executes all JavaScript code, including callbacks from the event loop
+
+>node (written in c++ and js) has c++ code and js code
+    C++ code: Core modules (e.g., fs, http) in src/.
+    JavaScript code: User-facing modules (e.g., lib/fs.js).
+    it implements the js modules  (e.g., events, stream).
+    it implements the c++ modules  (e.g., crypto, zlib).
+    we can add your own C++ modules via N-API.
+
+> libuv written in C
+    handles async I/O operations (file reads, network sockets, timers).
+    it handles the event (loop timers, file reads, HTTP requests)
+    a thread pool (default: 4 threads) for tasks that block OS operations (e.g., file I/O on OSes without async APIs).
+        -Not all tasks use the thread pool (e.g., TCP sockets use OS-native async APIs like epoll/kqueue).
+
+
+    the event loop and the v8 main thread runs in a single thread
+     
+    libuv notifies V8 when a callback is ready to run (e.g., a timer expires or a file read completes).
+        - libuv does not execute JS code itself—it delegates to V8
+    
+    
+    https://docs.libuv.org/en/v1.x/design.html
+
+    **event loop:
+        - when node starts the libuv event loop is started
+        - heavy event added to event loop as events, 
+            lib uv does the needful, uses thread pool or the OS (depending on the OS capabilities)
+            once the task completes, libuv queues the callback in the event loop.
+            event loop’s I/O poll phase executes the callback
+            libuv does not execute JS code itself—it delegates to V8 for execution
+
+        event loop phase:
+        - libuv’s event loop has phases for handling timers, I/O callbacks, polling, etc. The fs.readFile callback runs in the I/O callbacks phase.
+
+example of event loop when using fs module to read file
+
+[JavaScript Code]
+  │
+  ↓
+[fs.readFile] → [Node.js C++ Binding] → [libuv Async I/O]
+  │                                           │
+  │ (V8 continues executing JS)              [OS/Thread Pool]
+  ↓                                           │
+[console.log('After readFile...')]            │
+                                              ↓
+[Event Loop] ← [libuv Signals Completion] → [Callback Executed]
